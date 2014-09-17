@@ -1,20 +1,29 @@
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 
+//runtime = n * m, but not bigger than n * k; n - arrays count, m - length of the result array, k - length of single array
 public class BranchAndBoundHighSums extends HighSums {
-	public static int ittCount = 0;
-	public static int whileCount = 0;
+	//contains already counted elements, 
+	//ThreadLocal for save multyThread sharing 
+	private ThreadLocal<Set<Node>> alreadyCounted;
+	
 	@Override
 	public int[] findHighSums(int[][] lists, int n) {
-		ittCount = 0;
-		whileCount = 0;
-		PriorityQueue<Node> queue = new NoDuplicates<>(10, Node.nodeComparator);
-		int iterations = 1;
-		int size = 1;
+		alreadyCounted = new ThreadLocal<Set<Node>>() {
+			@Override
+			protected Set<Node> initialValue() {
+				return new HashSet<>();
+			}
+		};
+		
+		//contains max sum's candidates
+		//at the start contains sum of the first elements
+		PriorityQueue<Node> queue = new PriorityQueue<>(10, Node.nodeComparator);
 		int firstSum = 0;
 		int[] firstIndexes = new int[lists.length];
 		
@@ -23,62 +32,84 @@ public class BranchAndBoundHighSums extends HighSums {
 			firstIndexes[i] = 0;
 		}
 		
-		Node e = new Node(firstSum, firstIndexes, 0);
+		Node e = new Node(firstSum, firstIndexes);
 		queue.add(e);
 
+		//max length of the result array
+		int size = 1;
 		for (int i = 0; i < lists.length; i++) {
 			size *= lists[i].length;
 		}
 		
+		//element's child nodes
+		Set<Node> currentLayer = new HashSet<>();
+		currentLayer.add(e);
+
+		List<Integer> resultList = new ArrayList<>();
 		
-		while (iterations < n && queue.size() < size) {
-			queue.addAll(fromArrayToNode(lists, queue));
+		alreadyCounted.get().add(e);
+		
+		int iterations = 0;
+		while (iterations < n && iterations < size) {
+			//bounding
+			Node ee = queue.poll();
 			
-			whileCount++;
+			//branching
+			currentLayer = generateNextLayer(lists, ee);
+			
+			queue.addAll(currentLayer);
+			resultList.add(ee.sum);
 			iterations++;
-			
-			if (iterations % 5 == 0) System.out.println(iterations); 
 		}
 		
-		int[] result = new int[queue.size() > n ? n : queue.size()];
+		int[] result = new int[resultList.size()];
 		
-		for (int i = 0; i < result.length; i++) {
-			result[i] = queue.poll().sum;
+		//from list to array
+		for (int i = 0; i < resultList.size(); i++) {
+			result[i] = resultList.get(i);
 		}
 				
-		descendingSort(result);
-		
 		return result;
 	}
 	
-	private List<Node> fromArrayToNode(int[][] lists, Collection<Node> nodes) {
-		List<Node> result = new ArrayList<>();
+	//generates all child elements for parent
+	private Set<Node> generateNextLayer(int[][] lists, Node node) {
+		Set<Node> result = new HashSet<>();
 		
-		for (Node node : nodes) {
-			for (int i = 0; i < node.indexes.length; i++) {
-//				if (i != node.currentListLevel && node.indexes[i] + 1 < lists[i].length) {
-				if (node.indexes[i] + 1 < lists[i].length) {
-					int sum = node.sum - (lists[i][node.indexes[i]] - lists[i][node.indexes[i] + 1]);
-					int[] indexes = Arrays.copyOf(node.indexes, node.indexes.length);
-					indexes[i] = node.indexes[i] + 1;
-					Node e = new Node(sum, indexes, i);
+		for (int i = 0; i < node.indexes.length; i++) {
+			//is there right elements in the current list
+			if (node.indexes[i] + 1 < lists[i].length) {
+				int sum = node.sum - (lists[i][node.indexes[i]] - lists[i][node.indexes[i] + 1]);
+				int[] indexes = Arrays.copyOf(node.indexes, node.indexes.length);
+				indexes[i] = node.indexes[i] + 1;
+				Node e = new Node(sum, indexes);
+
+				if (!alreadyCounted.get().contains(e)) {
+					alreadyCounted.get().add(e);
 					result.add(e);
-					ittCount++;
 				}
+				
 			}
 		}
 		
 		return result;
 	}
 	
+	//represents tree elements
 	private static class Node implements Comparable<Node> {
+		public static Comparator<Node> nodeComparator = new Comparator<Node>() {
+
+			public int compare(Node node1, Node node2) {
+				return node1.compareTo(node2);
+			}
+
+		};
+		
 		private int sum;
 		private int[] indexes;
-		private int currentListLevel;
 
-		public Node(int sum, int[] indexes, int currentList) {
+		public Node(int sum, int[] indexes) {
 			this.sum = sum;
-			this.currentListLevel = currentList;
 			this.indexes = Arrays.copyOf(indexes, indexes.length);
 			sum = 0;
 		}
@@ -110,7 +141,7 @@ public class BranchAndBoundHighSums extends HighSums {
 		    int hash = 1;
 		    
 		    hash = hash * 31 + sum;
-		    hash = hash * 31 + indexes.hashCode();
+		    hash = hash * 31 + Arrays.hashCode(indexes);
 		    
 		    return hash;
 		  }
@@ -119,25 +150,5 @@ public class BranchAndBoundHighSums extends HighSums {
 		public String toString() {
 			return "sum: " + sum + "\nindexes: " + Arrays.toString(indexes);
 		}
-		
-		public static Comparator<Node> nodeComparator = new Comparator<Node>() {
-
-			public int compare(Node node1, Node node2) {
-				return node1.compareTo(node2);
-			}
-
-		};
-	}
-	
-	public static void main(String[] args) {
-		Node e1 = new Node(3, new int[]{1,1,0},3);
-		Node e2 = new Node(3, new int[]{1,0,1},3);
-		Node e3 = new Node(3, new int[]{1,0,1},3);
-		System.out.println(e1.equals(e2));
-		System.out.println(e1.equals(e3));
-		System.out.println(e2.equals(e3));
-		System.out.println(e2.equals(e2));
-		System.out.println(e1.equals(e1));
-		System.out.println(e3.equals(e3));
 	}
 }

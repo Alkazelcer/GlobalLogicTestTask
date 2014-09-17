@@ -4,46 +4,63 @@ import java.util.Random;
 
 public class Tets {
 	
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
+		long time;
+		HighSums bruteForceSum = new BruteForceHighSums();
+		HighSums branchSums = new BranchAndBoundHighSums();
 		
-//		int[][] lists = new int[][]{{6, 4, 1}, {5, 2}, {1, 1}};
-		long time = System.currentTimeMillis();
-		int[][] lists = new int[5][];
+		//specific lists
+		System.out.println("Specific lists");
+		int[][] lists = new int[][]{{6, 4, 1}, {5, 2}, {1, 1}};
 		
+		printArrays(lists);
+		
+		time = System.currentTimeMillis();
+		int[] bruteForceArray = bruteForceSum.findHighSums(lists, 1000);
+		System.out.println("Brute force time = " + (System.currentTimeMillis() - time));
+		
+		time = System.currentTimeMillis();
+		int[] branchArray = branchSums.findHighSums(lists, 1000);
+		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time));
+		System.out.println(Arrays.toString(branchArray));
+		
+		assert(Arrays.equals(bruteForceArray, branchArray));
+		
+		//random lists
+		System.out.println("\nRandom lists");
 		Random rand = new Random();
+
+		lists = new int[rand.nextInt(5) + 1][];
+		int size = 1;
 		
 		for (int i = 0; i < lists.length; i++) {
-			lists[i] = new int[(int) rand.nextInt(5) + 1];
+			int arraySize = rand.nextInt(5) + 1;
+			size *= arraySize;
+			
+			lists[i] = new int[arraySize];
 			for (int j = 0; j < lists[i].length; j ++) {
 				lists[i][j] = (int) rand.nextInt(100);
 			}
 			
 			HighSums.descendingSort(lists[i]);
 		}
-		for (int i = 0; i < lists.length; i++) {
-			System.out.println(Arrays.toString(lists[i]));
-		}
 		
-		HighSums bruteForceSum = new BruteForceHighSums();
+		printArrays(lists);
 		
-		int[] bruteForceArray = bruteForceSum.findHighSums(lists, 10000);
-		System.out.println(Arrays.toString(bruteForceArray));
-//		System.out.println(System.currentTimeMillis() - time);
+		int resultCount = rand.nextInt(size) + 1;
 		
+		time = System.currentTimeMillis();
+		bruteForceArray = bruteForceSum.findHighSums(lists, resultCount);
+		System.out.println("Brute force time = " + (System.currentTimeMillis() - time));
 		
-		HighSums branchSums = new BranchAndBoundHighSums();
-		
-		int[] branchArray = branchSums.findHighSums(lists, 10000);
+		time = System.currentTimeMillis();
+		branchArray = branchSums.findHighSums(lists, resultCount);
+		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time));
 		System.out.println(Arrays.toString(branchArray));
-		System.out.println(BranchAndBoundHighSums.ittCount);
-		System.out.println(BranchAndBoundHighSums.whileCount);
 		
 		assert(Arrays.equals(bruteForceArray, branchArray));
 		
-		//big arrays
+		//big lists
 		lists = new int[3][];
 		
 		for (int i = 0; i < lists.length; i++) {
@@ -54,25 +71,24 @@ public class Tets {
 			
 			HighSums.descendingSort(lists[i]);
 		}
+		
+		printArrays(lists);
+		
+		time = System.currentTimeMillis();
+		bruteForceArray = bruteForceSum.findHighSums(lists, 20);
+		System.out.println("Brute force time = " + (System.currentTimeMillis() - time));
+		
+		time = System.currentTimeMillis();
+		branchArray = branchSums.findHighSums(lists, 20);
+		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time));
+		System.out.println(Arrays.toString(branchArray));
+	
+		assert (Arrays.equals(bruteForceArray, branchArray));
+	}
+	
+	private static void printArrays(int[][] lists) {
 		for (int i = 0; i < lists.length; i++) {
 			System.out.println(Arrays.toString(lists[i]));
 		}
-	
-	bruteForceSum = new BruteForceHighSums();
-	
-	bruteForceArray = bruteForceSum.findHighSums(lists, 10);
-//	System.out.println(Arrays.toString(bruteForceArray));
-	System.out.println("done");
-//	System.out.println(System.currentTimeMillis() - time);
-	
-	
-	branchSums = new BranchAndBoundHighSums();
-	
-	branchArray = branchSums.findHighSums(lists, 10);
-//	System.out.println(Arrays.toString(branchArray));
-	System.out.println(BranchAndBoundHighSums.ittCount);
-	System.out.println(BranchAndBoundHighSums.whileCount);
-	
-	assert(Arrays.equals(bruteForceArray, branchArray));
 	}
 }

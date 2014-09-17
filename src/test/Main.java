@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 
@@ -16,15 +17,15 @@ public class Main {
 		printArrays(lists);
 		
 		time = System.currentTimeMillis();
-		int[] bruteForceArray = bruteForceSum.findHighSums(lists, 1000);
-		System.out.println("Brute force time = " + (System.currentTimeMillis() - time));
+		List<Integer> bruteForceArray = bruteForceSum.findHighSums(lists, 1000);
+		System.out.println("Brute force time = " + (System.currentTimeMillis() - time) + "ms");
 		
 		time = System.currentTimeMillis();
-		int[] branchArray = branchSums.findHighSums(lists, 1000);
-		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time));
-		System.out.println(Arrays.toString(branchArray));
+		List<Integer> branchArray = branchSums.findHighSums(lists, 1000);
+		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time) + "ms");
+		System.out.println(branchArray);
 		
-		assert(Arrays.equals(bruteForceArray, branchArray));
+		assert(bruteForceArray.equals(branchArray));
 		
 		//random lists
 		System.out.println("\nRandom lists");
@@ -42,7 +43,7 @@ public class Main {
 				lists[i][j] = (int) rand.nextInt(100);
 			}
 			
-			HighSums.descendingSort(lists[i]);
+			descendingSort(lists[i]);
 		}
 		
 		printArrays(lists);
@@ -51,39 +52,40 @@ public class Main {
 		
 		time = System.currentTimeMillis();
 		bruteForceArray = bruteForceSum.findHighSums(lists, resultCount);
-		System.out.println("Brute force time = " + (System.currentTimeMillis() - time));
+		System.out.println("Brute force time = " + (System.currentTimeMillis() - time) + "ms");
 		
 		time = System.currentTimeMillis();
 		branchArray = branchSums.findHighSums(lists, resultCount);
-		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time));
-		System.out.println(Arrays.toString(branchArray));
+		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time) + "ms");
+		System.out.println(branchArray);
 		
-		assert(Arrays.equals(bruteForceArray, branchArray));
+		assert(bruteForceArray.equals(branchArray));
 		
 		//big lists
+		System.out.println("\nBig lists");
 		lists = new int[3][];
 		
 		for (int i = 0; i < lists.length; i++) {
-			lists[i] = new int[(int) 500];
+			lists[i] = new int[(int) 200];
 			for (int j = 0; j < lists[i].length; j ++) {
 				lists[i][j] = (int) rand.nextInt(100);
 			}
 			
-			HighSums.descendingSort(lists[i]);
+			descendingSort(lists[i]);
 		}
 		
 		printArrays(lists);
 		
 		time = System.currentTimeMillis();
 		bruteForceArray = bruteForceSum.findHighSums(lists, 20);
-		System.out.println("Brute force time = " + (System.currentTimeMillis() - time));
+		System.out.println("Brute force time = " + (System.currentTimeMillis() - time) + "ms");
 		
 		time = System.currentTimeMillis();
 		branchArray = branchSums.findHighSums(lists, 20);
-		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time));
-		System.out.println(Arrays.toString(branchArray));
+		System.out.println("Branch and Bounds time = " + (System.currentTimeMillis() - time) + "ms");
+		System.out.println(branchArray);
 	
-		assert (Arrays.equals(bruteForceArray, branchArray));
+		assert(bruteForceArray.equals(branchArray));
 	}
 	
 	private static void printArrays(int[][] lists) {
@@ -91,4 +93,16 @@ public class Main {
 			System.out.println(Arrays.toString(lists[i]));
 		}
 	}
+	
+	private static void descendingSort(int[] list) {
+		Arrays.sort(list);
+		
+		int temp;
+		for (int i = 0; i < list.length / 2; i++) {
+			temp = list[i];
+			list[i] = list[list.length - 1 - i];
+			list[list.length - 1 - i] = temp;
+		}
+	}
+
 }

@@ -1,38 +1,25 @@
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 //runtime = n ^ k; n - arrays count, k - length of single array
 public class BruteForceHighSums extends HighSums {
-	private ThreadLocal<Integer> index;
 
 	@Override
-	public int[] findHighSums(int[][] lists, int n) {
-		index = new ThreadLocal<Integer>() {
-			@Override
-			protected Integer initialValue() {
-				return 0;
-			}
-		};
-
-		// max length of the result array
-		int size = 1;
-		for (int i = 0; i < lists.length; i++) {
-			size *= lists[i].length;
-		}
-
-		int[] resultSum = new int[size];
+	public List<Integer> findHighSums(int[][] lists, int n) {
+		List<Integer> resultSum = new ArrayList<>();
 
 		bruteForce(resultSum, lists, 0, 0);
 
-		descendingSort(resultSum);
+		Collections.sort(resultSum, Collections.reverseOrder());
 
-		return resultSum.length > n ? Arrays.copyOfRange(resultSum, 0, n) : resultSum;
+		return resultSum.size() > n ? resultSum.subList(0, n) : resultSum;
 	}
 
 	// recursively count sum of elements
-	private void bruteForce(int[] sums, int[][] lists, int i, int sum) {
+	private void bruteForce(List<Integer> sums, int[][] lists, int i, int sum) {
 		if (i > lists.length - 1) {
-			sums[index.get()] = sum;
-			index.set(index.get() + 1);
+			sums.add(sum);
 			return;
 		}
 

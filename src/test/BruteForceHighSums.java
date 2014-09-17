@@ -3,7 +3,7 @@ import java.util.Collections;
 import java.util.List;
 
 //runtime = n ^ k; n - arrays count, k - length of single array
-public class BruteForceHighSums extends HighSums {
+public class BruteForceHighSums implements HighSums {
 
 	@Override
 	public List<Integer> findHighSums(int[][] lists, int n) {

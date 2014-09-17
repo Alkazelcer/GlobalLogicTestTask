@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-//runtime = n * m * lg(m), but not bigger than n * k; n - arrays count, m - length of the result array, k - length of single array
-public class BranchAndBoundHighSums extends HighSums {
+//runtime = n * m * log(m), but not bigger than n * k; m - arrays count, n - length of the result array, k - length of single array
+public class BranchAndBoundHighSums implements HighSums {
 	
 	@Override
 	public List<Integer> findHighSums(int[][] lists, int n) {
@@ -42,10 +42,10 @@ public class BranchAndBoundHighSums extends HighSums {
 		
 		while (resultList.size() < n) {
 			//Get element with max sum
-			Node ee = queue.poll();
+			Node maxElement = queue.poll();
 			
 			//retrieving child nodes
-			Set<Node> nextNodes = generateNextNodes(lists, ee);
+			Set<Node> nextNodes = generateNextNodes(lists, maxElement);
 			
 			//skip nodes if they already counted
 			for (Node node : nextNodes) {
@@ -55,7 +55,7 @@ public class BranchAndBoundHighSums extends HighSums {
 				}
 			}
 			
-			resultList.add(ee.sum);
+			resultList.add(maxElement.sum);
 		}
 		
 		return resultList;
@@ -66,7 +66,7 @@ public class BranchAndBoundHighSums extends HighSums {
 		Set<Node> result = new HashSet<>();
 		
 		for (int i = 0; i < node.indexes.length; i++) {
-			//check if it is the last elements
+			//check if it is the last element
 			if (node.indexes[i] + 1 < lists[i].length) {
 				int sum = node.sum - (lists[i][node.indexes[i]] - lists[i][node.indexes[i] + 1]);
 				int[] indexes = Arrays.copyOf(node.indexes, node.indexes.length);
@@ -80,6 +80,7 @@ public class BranchAndBoundHighSums extends HighSums {
 		return result;
 	}
 	
+	//Node contains single indexes of arrays and correspondent sum of elements
 	private static class Node implements Comparable<Node> {
 		public static Comparator<Node> nodeComparator = new Comparator<Node>() {
 
